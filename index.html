@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<title>YouTube風ホーム</title>
+<style>
+*{box-sizing:border-box}
+:root{font-family:Arial,-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;color:#0f0f0f;background:#fff}
+body{margin:0}
+header{height:58px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid #eee;position:sticky;top:0;background:#fff;z-index:5}
+.logo{font-size:21px;font-weight:800;letter-spacing:-1px}
+.mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:21px;border-radius:7px;background:#f00;color:white;font-size:13px;margin-right:6px}
+main{max-width:760px;margin:0 auto;padding:20px 16px}
+h1{font-size:20px;margin:8px 0 18px}
+.search-form{display:flex;gap:8px;width:100%;align-items:stretch}
+.search-form input{flex:1;min-width:0;height:48px;border:1px solid #c6c6c6;border-radius:24px;padding:0 17px;font-size:16px;background:#fff;color:#111}
+.search-form button,.play-form button{height:48px;border:0;border-radius:24px;padding:0 20px;background:#f2f2f2;color:#111;font-size:15px;font-weight:700;cursor:pointer;touch-action:manipulation;-webkit-appearance:none;appearance:none}
+.search-form button:active,.play-form button:active{background:#ddd}
+.help{font-size:13px;color:#606060;line-height:1.65;margin:12px 4px 26px}
+.panel{border:1px solid #e5e5e5;border-radius:14px;padding:16px;margin-top:18px}
+.panel h2{font-size:16px;margin:0 0 12px}
+.play-form{display:flex;gap:8px}
+.play-form input{flex:1;min-width:0;height:46px;border:1px solid #bbb;border-radius:10px;padding:0 12px;font-size:15px}
+.play-form button{height:46px;border-radius:10px}
+iframe{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#111;margin-top:14px}
+.small{font-size:12px;color:#777;line-height:1.5}
+</style>
+</head>
+<body>
+<header><div class="logo"><span class="mark">▶</span>YouTube風</div></header>
+<main>
+<h1>動画を検索</h1>
+<form class="search-form" action="https://www.youtube.com/results" method="get" target="_blank">
+<input type="search" name="search_query" placeholder="動画を検索" aria-label="検索キーワード" required>
+<button type="submit">検索</button>
+</form>
+<p class="help">検索するとYouTube公式サイトの検索結果が別タブで開きます。まずはAPIキーなしで検索できるシンプルな形にしています。</p>
+<section class="panel">
+<h2>動画URLから再生</h2>
+<form class="play-form" id="videoForm">
+<input id="videoUrl" type="url" placeholder="YouTubeの動画URLを貼り付け" aria-label="動画URL">
+<button type="submit">再生</button>
+</form>
+<iframe id="player" title="YouTube動画プレーヤー" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<p class="small">対応URL：youtube.com/watch?v=… / youtu.be/… / youtube.com/shorts/…</p>
+</section>
+</main>
+<script>
+document.getElementById('videoForm').addEventListener('submit', function(event) {
+  event.preventDefault();
+  const raw = document.getElementById('videoUrl').value.trim();
+  let id = '';
+  try {
+    const url = new URL(raw);
+    if (url.hostname === 'youtu.be') id = url.pathname.split('/').filter(Boolean)[0] || '';
+    else if (url.hostname === 'youtube.com' || url.hostname.endsWith('.youtube.com')) {
+      id = url.searchParams.get('v') || '';
+      if (!id) {
+        const parts = url.pathname.split('/').filter(Boolean);
+        const index = parts.findIndex(part => ['embed','shorts','live'].includes(part));
+        if (index >= 0) id = parts[index + 1] || '';
+      }
+    }
+  } catch (error) {}
+  if (!/^[A-Za-z0-9_-]{11}$/.test(id)) {
+    alert('有効なYouTube動画URLを入力してね。');
+    return;
+  }
+  document.getElementById('player').src = 'https://www.youtube-nocookie.com/embed/' + id;
+});
+</script>
+</body>
+</html>
